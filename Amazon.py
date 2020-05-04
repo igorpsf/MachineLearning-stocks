@@ -103,3 +103,51 @@ predictions = scaler.inverse_transform(predictions)
 # Get the root mean squared error (RMSE)
 rmse = np.sqrt( np.mean( predictions - y_test )**2 )
 print(rmse)
+
+# Plot the data
+train = data[:training_data_len]
+valid = data[training_data_len:]
+valid['Predictions'] = predictions
+
+# Visualize the data
+plt.figure(figsize=(16,8))
+plt.title('Model')
+plt.xlabel('Date', fontsize=18)
+plt.ylabel('Close Price USD ($)', fontsize=18)
+plt.plot(train['Close'])
+plt.plot(valid[['Close', 'Predictions']])
+plt.legend(['Train', 'Val', 'Predictions'], loc='lower right')
+print(plt.show)
+print(valid)
+
+
+# Get the quote
+amazon_quote = web.DataReader('AMZN', data_source='yahoo', start='2015-01-01', end='2020-05-03')
+
+# Create a new dataframe
+new_df = amazon_quote.filter(['Close'])
+
+# Get teh last 60 days closing price values and convert the adtaframe to an array
+last_60_days = new_df[-60:].values
+
+# Scale the data to be values between 0 and 1
+last_60_days_scaled = scaler.transform(last_60_days)
+
+# Create an empty list
+X_test = []
+
+# Append teh past 60 days
+X_test.append(last_60_days_scaled)
+
+# Convert X_test data set to a numpy array
+X_test = np.array(X_test)
+
+# Reshape the data
+X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+
+# Get the predicted scale price
+pred_price = model.predict(X_test)
+
+# Undo the scaling
+pred_price = scaler.inverse_transform(pred_price)
+print(pred_price)
